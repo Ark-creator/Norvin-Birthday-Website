@@ -45,7 +45,7 @@ const BusinessCard = ({ position }) => {
     <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
       <group 
         ref={cardRef} // 3. Attach Ref
-        position={position} 
+        position={[8, -4, 0.5]} 
         rotation={[0.2, -0.5, 0]} 
         onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
         onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto'; }}
