@@ -426,7 +426,7 @@ export default function App() {
             {/* Cake */}
             <BirthdayCake 
               position={[0, -2.5, 2]} 
-              data={{ title: "Make a Wish!", desc: "Here is your special video...", type: "video", url: "/video3.mp4" }} 
+              data={{ title: "Make a Wish!", desc: "Here is your special video...", type: "video", url: "/video4.mp4" }} 
             />
           </Suspense>
 
