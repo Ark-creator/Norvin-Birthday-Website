@@ -412,7 +412,7 @@ export default function App() {
               position={[-4.5, 0, 0]} 
               imgUrl="/pic1.jpg" 
               label="PH"
-              data={{ title: "Memory Lane", desc: "Remember this day?", type: "video", url: "video1.mp4" }}
+              data={{ title: "Memory Lane", desc: "Remember this day?", type: "video", url: "video01.mp4" }}
             />
 
             {/* Right Photo */}
