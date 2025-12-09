@@ -420,7 +420,7 @@ export default function App() {
               position={[4.5, 0, 0]} 
               imgUrl="/pic2.jpg" 
               label="USA"
-              data={{ title: "Adventures", desc: "To many more trips!", type: "video", url: "video2.mp4" }}
+              data={{ title: "Adventures", desc: "To many more trips!", type: "video", url: "video02.mp4" }}
             />
 
             {/* Cake */}
