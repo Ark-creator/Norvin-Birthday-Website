@@ -23,18 +23,66 @@ const BackgroundMusic = ({ play }) => {
   )
 }
 
+// --- COMPONENT: Landscape Blocker (NEW) ---
+// This forces mobile users to rotate their phone before they can see anything
+const LandscapeBlocker = () => {
+  const [isPortrait, setIsPortrait] = useState(false)
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      // Logic: If width < height AND width is less than a desktop (1024px)
+      // We consider this a mobile portrait view that needs rotation
+      const portrait = window.innerWidth < window.innerHeight
+      const mobile = window.innerWidth < 1024 
+      setIsPortrait(portrait && mobile)
+    }
+
+    // Check immediately and on resize
+    checkOrientation()
+    window.addEventListener('resize', checkOrientation)
+    return () => window.removeEventListener('resize', checkOrientation)
+  }, [])
+
+  if (!isPortrait) return null
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+      backgroundColor: '#050505', zIndex: 9999, display: 'flex', 
+      flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      color: 'white', textAlign: 'center'
+    }}>
+      {/* CSS Animation for rotating phone */}
+      <style>{`
+        @keyframes rotate-phone {
+          0% { transform: rotate(0deg); }
+          25% { transform: rotate(90deg); }
+          50% { transform: rotate(90deg); }
+          75% { transform: rotate(0deg); }
+          100% { transform: rotate(0deg); }
+        }
+        .phone-icon {
+          width: 50px; height: 80px; border: 3px solid white; border-radius: 5px;
+          animation: rotate-phone 2s infinite ease-in-out; margin-bottom: 20px;
+        }
+      `}</style>
+      
+      <div className="phone-icon"></div>
+      <h2 style={{ fontFamily: 'sans-serif', marginTop: '20px' }}>Please Rotate Your Device 🔄</h2>
+      <p style={{ color: '#aaa', maxWidth: '300px' }}>This 3D experience is designed for Landscape mode.</p>
+    </div>
+  )
+}
+
 // --- COMPONENT 1: The Business Card (Easter Egg) ---
 const BusinessCard = ({ position }) => {
   const setActiveItem = useStore((state) => state.setActiveItem)
   const [hovered, setHover] = useState(false)
-  const cardRef = useRef() // 1. Create Ref
+  const cardRef = useRef()
 
-  // 2. The Smooth Animation Logic
   useFrame((state, delta) => {
     if (cardRef.current) {
       const targetScale = hovered ? 1.2 : 1
-      // Lerp (Linear Interpolation) calculates the smooth step between current and target
-      // delta * 10 controls the speed (Higher = faster snap)
       cardRef.current.scale.x = THREE.MathUtils.lerp(cardRef.current.scale.x, targetScale, delta * 10)
       cardRef.current.scale.y = THREE.MathUtils.lerp(cardRef.current.scale.y, targetScale, delta * 10)
       cardRef.current.scale.z = THREE.MathUtils.lerp(cardRef.current.scale.z, targetScale, delta * 10)
@@ -44,7 +92,7 @@ const BusinessCard = ({ position }) => {
   return (
     <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
       <group 
-        ref={cardRef} // 3. Attach Ref
+        ref={cardRef} 
         position={[8, -4, 0.5]} 
         rotation={[0.2, -0.5, 0]} 
         onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
@@ -58,7 +106,6 @@ const BusinessCard = ({ position }) => {
             url: "https://romark-bayan-online-portfolio.vercel.app" 
           })
         }}
-        // scale={hovered ? 1.2 : 1}  <-- REMOVED (Handled by useFrame now)
       >
         <mesh>
           <boxGeometry args={[1.2, 0.7, 0.05]} />
@@ -143,29 +190,26 @@ const RisingBalloon = ({ startPosition, color }) => {
   const wobble = useRef(Math.random() * 10)
 
   const playPopSound = () => {
-  // Check if browser supports AudioContext
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
 
-  const ctx = new AudioContext();
-  const oscillator = ctx.createOscillator();
-  const gainNode = ctx.createGain();
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
 
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
 
-  // Sound settings: Start high frequency, drop fast (Pop effect)
-  oscillator.type = 'triangle';
-  oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(300, ctx.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
 
-  // Volume settings: Start loud, fade out instantly
-  gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.5, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
 
-  oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.1);
-}
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.1);
+  }
 
   useFrame((state) => {
     if (!ref.current || popped) return
@@ -213,9 +257,8 @@ const PhotoFrame = ({ position, imgUrl, label, data }) => {
   const setActiveItem = useStore((state) => state.setActiveItem)
   const [hovered, setHover] = useState(false)
   const texture = useLoader(THREE.TextureLoader, imgUrl)
-  const frameRef = useRef() // 1. Create Ref
+  const frameRef = useRef()
 
-  // 2. Smooth Animation Logic
   useFrame((state, delta) => {
     if (frameRef.current) {
       const targetScale = hovered ? 1.1 : 1
@@ -228,7 +271,7 @@ const PhotoFrame = ({ position, imgUrl, label, data }) => {
   return (
     <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
       <group 
-        ref={frameRef} // 3. Attach Ref
+        ref={frameRef} 
         position={position}
         onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
         onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto'; }}
@@ -236,7 +279,6 @@ const PhotoFrame = ({ position, imgUrl, label, data }) => {
           e.stopPropagation()
           setActiveItem(data)
         }}
-        // scale removed, handled by useFrame
       >
         <mesh position={[0, 0, -0.05]}>
           <boxGeometry args={[3.2, 4.2, 0.1]} />
@@ -268,12 +310,11 @@ const BirthdayCake = ({ position, data }) => {
   const setActiveItem = useStore((state) => state.setActiveItem)
   const [hovered, setHover] = useState(false)
   const { scene } = useGLTF('/cake.glb')
-  const cakeRef = useRef() // 1. Create Ref
+  const cakeRef = useRef()
 
-  // 2. Smooth Animation Logic
   useFrame((state, delta) => {
     if (cakeRef.current) {
-      const targetScale = hovered ? 6 : 5 // Target sizes
+      const targetScale = hovered ? 6 : 5
       cakeRef.current.scale.x = THREE.MathUtils.lerp(cakeRef.current.scale.x, targetScale, delta * 10)
       cakeRef.current.scale.y = THREE.MathUtils.lerp(cakeRef.current.scale.y, targetScale, delta * 10)
       cakeRef.current.scale.z = THREE.MathUtils.lerp(cakeRef.current.scale.z, targetScale, delta * 10)
@@ -283,10 +324,9 @@ const BirthdayCake = ({ position, data }) => {
   return (
     <Float speed={4} rotationIntensity={2} floatIntensity={2}>
       <primitive 
-        ref={cakeRef} // 3. Attach Ref
+        ref={cakeRef} 
         object={scene} 
         position={position} 
-        // scale removed, handled by useFrame
         onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
         onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto'; }}
         onClick={(e) => {
@@ -295,6 +335,84 @@ const BirthdayCake = ({ position, data }) => {
         }}
       />
     </Float>
+  )
+}
+
+// --- COMPONENT 8: The Mystery Gift Box ---
+const GiftBox = ({ position, data }) => {
+  const setActiveItem = useStore((state) => state.setActiveItem)
+  const [hovered, setHover] = useState(false)
+  const [opened, setOpened] = useState(false)
+  const lidRef = useRef()
+
+  useFrame((state, delta) => {
+    if (lidRef.current) {
+      const targetY = hovered || opened ? 1.2 : 0.55
+      const targetRot = hovered || opened ? 0.2 : 0
+      
+      lidRef.current.position.y = THREE.MathUtils.lerp(lidRef.current.position.y, targetY, delta * 5)
+      lidRef.current.rotation.z = THREE.MathUtils.lerp(lidRef.current.rotation.z, targetRot, delta * 5)
+      lidRef.current.rotation.x = THREE.MathUtils.lerp(lidRef.current.rotation.x, targetRot, delta * 5)
+    }
+  })
+
+  return (
+    <group 
+      position={position}
+      onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
+      onPointerOut={() => { setHover(false); document.body.style.cursor = 'auto'; }}
+      onClick={(e) => {
+        e.stopPropagation()
+        setOpened(true)
+        setTimeout(() => {
+            setActiveItem(data)
+            setOpened(false)
+        }, 300)
+      }}
+    >
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#ff3333" roughness={0.3} />
+      </mesh>
+      
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1.02, 1.02, 0.2]} />
+        <meshStandardMaterial color="#ffd700" metalness={0.5} />
+      </mesh>
+      
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[0.2, 1.02, 1.02]} />
+        <meshStandardMaterial color="#ffd700" metalness={0.5} />
+      </mesh>
+
+      <group ref={lidRef} position={[0, 0.55, 0]}>
+        <mesh>
+            <boxGeometry args={[1.1, 0.2, 1.1]} />
+            <meshStandardMaterial color="#ff3333" roughness={0.3} />
+        </mesh>
+        <mesh>
+            <boxGeometry args={[1.12, 0.21, 0.2]} />
+            <meshStandardMaterial color="#ffd700" metalness={0.5} />
+        </mesh>
+        <mesh>
+            <boxGeometry args={[0.2, 0.21, 1.12]} />
+            <meshStandardMaterial color="#ffd700" metalness={0.5} />
+        </mesh>
+      </group>
+      
+      <Float speed={2} floatIntensity={0.5}>
+        <Text 
+            position={[0, 1.5, 0]} 
+            fontSize={0.2} 
+            color="white"
+            anchorY="bottom"
+            outlineWidth={0.02}
+            outlineColor="#ff3333"
+        >
+            OPEN ME!
+        </Text>
+      </Float>
+    </group>
   )
 }
 
@@ -334,7 +452,7 @@ const UIOverlay = () => {
   )
 }
 
-// --- COMPONENT 7: The Welcome Screen (Start) ---
+// --- COMPONENT 7: The Welcome Screen ---
 const WelcomeScreen = ({ onStart }) => {
   return (
     <motion.div 
@@ -342,20 +460,20 @@ const WelcomeScreen = ({ onStart }) => {
       initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1 }}
       style={{ background: '#050505', zIndex: 200, flexDirection: 'column', color: 'white' }} 
     >
-      <div className="modal-content" style={{ maxWidth: '400px', background: '#1a1a1a', border: '1px solid #333', textAlign: 'center' }}>
-        <h1 style={{ margin: '0 0 10px 0', color: '#ffdd4d' }}>🎉 Happy Birthday Nurse Norvin!</h1>
-        <p style={{ color: '#ccc', fontSize: '0.9rem' }}>Welcome to your interactive 3D surprise.</p>
+      <div className="modal-content" style={{ maxWidth: '500px', maxHeight: '280px', background: '#1a1a1a', border: '1px solid #333', textAlign: 'center' }}>
+        <h1 style={{ margin: '0 0 10px 0', color: '#ffdd4d', fontSize: '1.4rem' }}>🎉 Happy Birthday Nurse Norvin!</h1>
+        <p style={{ color: '#ccc', fontSize: '0.8rem' }}>Welcome to your interactive 3D surprise.</p>
         <hr style={{ borderColor: '#333', margin: '20px 0' }} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', fontSize: '0.9rem', color: '#aaa', textAlign: 'left', paddingLeft: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', fontSize: '0.7rem', color: '#aaa', textAlign: 'left', paddingLeft: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>🎧</span> <span>Put on your headphones or connect to your loudest speaker!</span></div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>🔄</span> <span><strong>Watch on Smart TV or Rotate phone</strong> to Landscape</span></div>
+          {/* <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>🔄</span> <span><strong>Watch on Smart TV or Rotate phone</strong> to Landscape</span></div> */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><span>👆</span> <span>Drag to explore, Click items to view</span></div>
         </div>
-        <button onClick={onStart} style={{ marginTop: '30px', padding: '15px 40px', fontSize: '1.2rem', background: 'linear-gradient(45deg, #ff00cc, #3333ff)', border: 'none', borderRadius: '50px', color: 'white', cursor: 'pointer', width: '100%', fontWeight: 'bold' }}>
+        <button onClick={onStart} style={{ marginTop: '10px', padding: '15px 40px', fontSize: '1.2rem', background: 'linear-gradient(45deg, #ff00cc, #3333ff)', border: 'none', borderRadius: '50px', color: 'white', cursor: 'pointer', width: '100%', fontWeight: 'bold' }}>
           ENTER PARTY 🚀
         </button>
 
-        <div style={{ marginTop: '30px', fontSize: '0.7rem', color: '#555', borderTop: '1px solid #222', paddingTop: '10px' }}>
+        <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#555', borderTop: '1px solid #222', paddingTop: '10px' }}>
           Interactive Experience crafted by <br/>
           <a 
             href="#" 
@@ -379,13 +497,14 @@ export default function App() {
 
   return (
     <>
+      {/* 1. FORCE LANDSCAPE MODE (New Blocker) */}
+      <LandscapeBlocker />
+
       <AnimatePresence>
         {!started && <WelcomeScreen onStart={() => setStarted(true)} />}
       </AnimatePresence>
 
-      {/* BACKGROUND MUSIC: Plays when 'started' is true */}
       <BackgroundMusic play={started} />
-
       <UIOverlay />
 
       <div style={{ width: '100vw', height: '100vh', background: '#111' }}>
@@ -396,7 +515,6 @@ export default function App() {
           <Environment preset="city" /> 
           <Stars radius={100} count={5000} factor={4} fade speed={1} />
 
-          {/* Background Text */}
           <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
             <Text fontSize={2} color="#00ffff" outlineWidth={0.02} outlineColor="#0088aa" position={[0, 5, -6]}>
               HAPPY BIRTHDAY NORVIN!
@@ -404,10 +522,8 @@ export default function App() {
           </Float>
 
           <Suspense fallback={null}>
-            {/* The Easter Egg Business Card */}
             <BusinessCard position={[10, -5.5, 0]} />
 
-            {/* Left Photo */}
             <PhotoFrame 
               position={[-4.5, 0, 0]} 
               imgUrl="/pic1.jpg" 
@@ -415,7 +531,6 @@ export default function App() {
               data={{ title: "Memory Lane", desc: "Remember this day?", type: "video", url: "video01.mp4" }}
             />
 
-            {/* Right Photo */}
             <PhotoFrame 
               position={[4.5, 0, 0]} 
               imgUrl="/pic2.jpg" 
@@ -423,10 +538,19 @@ export default function App() {
               data={{ title: "Adventures", desc: "To many more trips!", type: "video", url: "video02.mp4" }}
             />
 
-            {/* Cake */}
             <BirthdayCake 
               position={[0, -2.5, 2]} 
               data={{ title: "Make a Wish!", desc: "Here is your special video...", type: "video", url: "/video4.mp4" }} 
+            />
+
+            <GiftBox 
+              position={[0, .5, 4]} 
+              data={{ 
+                title: "The Birthday Event", 
+                desc: "Highlights from the celebration!", 
+                type: "video", 
+                url: "/event_video.mp4"
+              }} 
             />
           </Suspense>
 
